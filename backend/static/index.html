@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Регистрация посетителей</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<button class="theme-btn-fixed" id="themeToggleFixed">🌙</button>
+
+<div id="app">
+    <div id="loginBlock" class="login-form hidden">
+        <h2>Вход в систему</h2>
+        <div class="floating-group">
+            <input type="text" id="username" placeholder=" " required autocomplete="off">
+            <label for="username">Логин</label>
+        </div>
+        <div class="floating-group">
+            <div class="password-wrapper">
+                <input type="password" id="password" placeholder=" " required autocomplete="off">
+                <label for="password">Пароль</label>
+                <span id="togglePassword"><i class="fas fa-eye"></i></span>
+            </div>
+        </div>
+        <button id="loginBtn">Войти</button>
+        <div id="loginError" class="error"></div>
+        <div class="test-creds">Тестовые: admin/admin123 | secretary/secret123 | guard/guard123</div>
+    </div>
+
+    <div id="mainBlock" class="container hidden">
+        <div class="top-bar">
+            <div></div>
+            <div class="user-info">
+                <span id="userRoleLabel" class="role-label"></span>
+                <button id="logoutBtn" class="logout-btn">Выйти</button>
+            </div>
+        </div>
+        <h1>Регистрация посетителей</h1>
+
+        <form id="visitorForm">
+            <div class="floating-group floating-with-icon">
+                <i class="fas fa-user"></i>
+                <input type="text" id="full_name" placeholder=" " required>
+                <label for="full_name">ФИО</label>
+            </div>
+            <div class="floating-group floating-with-icon">
+                <i class="fas fa-building"></i>
+                <input type="text" id="company" placeholder=" " required>
+                <label for="company">Компания</label>
+            </div>
+            <div class="floating-group floating-with-icon">
+                <i class="fas fa-user-tie"></i>
+                <input type="text" id="whom_visit" placeholder=" " required>
+                <label for="whom_visit">К кому пришёл</label>
+            </div>
+            <div class="floating-group floating-with-icon">
+                <i class="fas fa-comment"></i>
+                <input type="text" id="purpose" placeholder=" " required>
+                <label for="purpose">Цель визита</label>
+            </div>
+            <button type="submit"><i class="fas fa-sign-in-alt"></i> Зарегистрировать вход</button>
+        </form>
+
+        <div class="filter-panel">
+            <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, компании, кому...">
+            <label class="hide-completed-label"><span>Скрыть завершённых</span><input type="checkbox" id="hideCompletedCheckbox" checked></label>
+            <select id="dateFilter">
+                <option value="all">Все даты</option>
+                <option value="today">Сегодня</option>
+                <option value="week">Эта неделя</option>
+                <option value="month">Этот месяц</option>
+            </select>
+        </div>
+
+        <div class="action-buttons">
+            <button id="reportBtn">📊 Выгрузить отчёт Excel</button>
+            <button id="manageUsersBtn" class="hidden">👥 Управление пользователями</button>
+            <button id="viewLogsBtn" class="hidden">📜 Журнал действий</button>
+        </div>
+
+        <h2>Список посетителей</h2>
+        <table id="visitorsTable">
+            <thead>
+                <tr><th>ID</th><th>ФИО</th><th>Компания</th><th>К кому</th><th>Цель</th><th>Время прихода</th><th>Время ухода</th><th>Действие</th></tr>
+            </thead>
+            <tbody id="visitorsTableBody"></tbody>
+        </table>
+
+        <div class="pagination" id="paginationContainer" style="display: none;">
+            <button id="prevPageBtn" class="page-btn">← Предыдущая</button>
+            <span id="pageNumbers" class="page-info"></span>
+            <button id="nextPageBtn" class="page-btn">Следующая →</button>
+            <select id="limitSelect" class="limit-select">
+                <option value="10">10 на странице</option>
+                <option value="25" selected>25 на странице</option>
+                <option value="50">50 на странице</option>
+            </select>
+        </div>
+
+        <div class="stats" id="statsBlock"></div>
+    </div>
+</div>
+
+<div id="userModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Управление пользователями</h3><span class="close-modal" id="closeModalBtn">&times;</span></div>
+        <div id="usersListDiv">Загрузка...</div>
+        <div class="add-user-form">
+            <h4>Добавить пользователя</h4>
+            <input type="text" id="newUsername" placeholder="Логин">
+            <input type="password" id="newPassword" placeholder="Пароль">
+            <input type="text" id="newFullName" placeholder="ФИО">
+            <select id="newRole"><option value="secretary">Секретарь</option><option value="guard">Охранник</option><option value="admin">Администратор</option></select>
+            <button id="createUserBtn">Создать</button>
+        </div>
+    </div>
+</div>
+
+<div id="logsModal" class="modal">
+    <div class="modal-content" style="width: 800px;">
+        <div class="modal-header">
+            <h3>Журнал действий</h3>
+            <span class="close-modal" id="closeLogsModalBtn">&times;</span>
+        </div>
+        <div id="logsContent" style="max-height: 70vh; overflow-y: auto;"></div>
+    </div>
+</div>
+
+<script type="module" src="/static/js/main.js"></script>
+</body>
+</html>
