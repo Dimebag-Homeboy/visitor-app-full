@@ -10,9 +10,9 @@ from sqlalchemy import text
 from starlette.middleware.base import BaseHTTPMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from database import engine
+from database import engine, Base
 from routers import auth, visitors, users, logs
-import models
+import models  # важно: импортируем все модели, чтобы Base.metadata знал о них
 from limiter import limiter
 
 # ========== НАСТРОЙКА ЛОГИРОВАНИЯ С РОТАЦИЕЙ ==========
@@ -50,9 +50,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
 # ========== ФУНКЦИИ ==========
 def create_test_users():
-    if os.getenv("ENVIRONMENT", "development") != "development":
-        logger.info("Skipping test users creation (not development)")
-        return
+    # Тестовые пользователи создаются всегда (убрана проверка на development)
     from sqlalchemy.orm import Session
     from database import SessionLocal
     from utils import get_password_hash
@@ -93,7 +91,10 @@ def create_test_users():
 def cleanup_expired_tokens():
     try:
         with engine.connect() as conn:
-            conn.execute(text("DELETE FROM refresh_tokens WHERE expires_at < NOW() OR revoked = TRUE"))
+            # Совместимый SQL для PostgreSQL и SQLite
+            # Для SQLite используем CURRENT_TIMESTAMP, для PostgreSQL NOW()
+            # Упростим: будем использовать CURRENT_TIMESTAMP, который работает в обеих СУБД
+            conn.execute(text("DELETE FROM refresh_tokens WHERE expires_at < CURRENT_TIMESTAMP OR revoked = TRUE"))
             conn.commit()
         logger.info("Expired refresh tokens cleaned up")
     except Exception as e:
@@ -101,13 +102,23 @@ def cleanup_expired_tokens():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    # 1. Создаём таблицы, если их нет
+    logger.info("Creating database tables...")
+    Base.metadata.create_all(bind=engine)
+    logger.info("Tables created.")
+    # 2. Очищаем просроченные токены
     cleanup_expired_tokens()
+    # 3. Создаём тестовых пользователей
     create_test_users()
     yield
-    # Shutdown (доп. очистка при необходимости)
+    # Здесь можно добавить код для закрытия соединений при выключении
 
-app = FastAPI(title="Visitor Registration API", description="Система регистрации посетителей", version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="Visitor Registration API",
+    description="Система регистрации посетителей",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 app.add_middleware(LoggingMiddleware)
 app.state.limiter = limiter
@@ -117,6 +128,7 @@ origins = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "http://localhost",
+    # Добавьте домен Render, если нужно, но для локальной работы достаточно
 ]
 app.add_middleware(
     CORSMiddleware,
