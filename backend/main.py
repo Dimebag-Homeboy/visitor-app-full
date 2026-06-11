@@ -128,7 +128,6 @@ origins = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "http://localhost",
-    # Добавьте домен Render, если нужно, но для локальной работы достаточно
 ]
 app.add_middleware(
     CORSMiddleware,
